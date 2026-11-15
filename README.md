@@ -32,7 +32,7 @@ See the [project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/) f
 * **SAC-Lite critics.** Entropy regularisation appears in the actor's policy-improvement loss only and is
   left out of the critics' Bellman target ([Yu et al., 2022](https://arxiv.org/abs/2201.12434)).
 * **Finite replay.** A buffer much smaller than the training horizon discards stale, low-objective
-  transitions automatically.
+  transitions automatically. Prioritised sampling can optionally be switched on late in training.
 
 ## Install
 
@@ -112,6 +112,7 @@ Objectives must be strictly positive; shift or rescale them if they are not.
 | `sigma_scale` | 0.2 | Scales the std-dev of the stochastic head. |
 | `alpha`, `alpha_after`, `alpha_switch_step` | 0.27, 0.1, 8000 | Entropy temperature schedule (`None` = never switch). |
 | `use_ce`, `ce_scale` | True, 0.1 | Cross-entropy regulariser and its relative weight. |
+| `per_start_step`, `per_exponent` | None, 1.3 | Optional prioritised replay: from this env step on, sample with probability proportional to `priority ** per_exponent` (`None` = uniform sampling). |
 | `actor_clip` / `critic_clip` | 4.0 / 2.0 | Gradient-norm clipping. |
 | `device` | auto | `"cuda"` if available, else `"cpu"`. |
 

@@ -37,6 +37,10 @@ class AgentConfig:
     # Cross-entropy regulariser on the simplex block.
     use_ce: bool = True
     ce_scale: float = 0.1
+    # Optional prioritised replay: from this env step on, sample transitions with
+    # probability proportional to priority ** per_exponent. ``None`` keeps uniform sampling.
+    per_start_step: Optional[int] = None
+    per_exponent: float = 1.3
     actor_clip: float = 4.0
     critic_clip: float = 2.0
     device: Optional[str] = None
@@ -85,6 +89,7 @@ class HybridSACDDPGAgent:
 
         self.memory = ReplayBuffer(cfg.buffer_size, state_dim, action_dim, self.device)
         self.steps = 0
+        self._per_started = False
 
     @property
     def alpha(self) -> float:
@@ -116,7 +121,13 @@ class HybridSACDDPGAgent:
         cfg = self.cfg
         if len(self.memory) < cfg.batch_size:
             return None
-        s, a, r, s2, d = self.memory.sample(cfg.batch_size, self.rng)
+        per_on = cfg.per_start_step is not None and self.steps >= cfg.per_start_step
+        if per_on and not self._per_started:
+            self.memory.reset_priorities()  # start from a clean slate at the switch
+            self._per_started = True
+        s, a, r, s2, d, idx = self.memory.sample(
+            cfg.batch_size, self.rng, cfg.per_exponent if per_on else None
+        )
 
         # --- actor: maximise min-Q with entropy bonus, plus CE toward the fairness target
         a_new, log_prob = self.actor.sample(s, reparameterize=True)
@@ -156,6 +167,9 @@ class HybridSACDDPGAgent:
         self.critic_2_opt.step()
 
         self._soft_update(cfg.tau)
+        if per_on:
+            td = 0.5 * ((q1 - y) + (q2 - y))
+            self.memory.update_priorities(idx, td.detach().cpu().numpy())
         return {
             "policy_loss": policy_loss.item(),
             "critic_loss": critic_loss.item(),

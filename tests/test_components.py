@@ -14,6 +14,7 @@ from maxmin_rl import (
     unit_modulus,
 )
 from maxmin_rl.networks import HybridActor
+from maxmin_rl.replay import ReplayBuffer
 
 
 def test_unit_modulus_projects_pairs_onto_circle():
@@ -74,3 +75,18 @@ def test_reparameterised_sample_carries_gradients():
 def test_agent_learn_waits_for_a_full_batch():
     agent = HybridSACDDPGAgent(6, 2, 4, lambda v: v, seed=0)
     assert agent.learn(np.array([0.5, 0.5])) is None
+
+
+def test_prioritised_sampling_prefers_high_priority_slots():
+    buf = ReplayBuffer(50, 3, 2, torch.device("cpu"))
+    for i in range(50):
+        buf.add(np.full(3, i), np.zeros(2), 0.0, np.zeros(3), False)
+    buf.reset_priorities()
+    buf.update_priorities(np.array([7]), np.array([1e4]))
+    rng = np.random.default_rng(0)
+    weight = (np.log1p(1e4) + 1e-6) ** 1.3
+    expected = weight / (weight + 49)  # the other 49 slots keep priority 1
+    *_, idx = buf.sample(4000, rng, exponent=1.3)
+    assert abs((idx == 7).mean() - expected) < 0.03
+    *_, uniform_idx = buf.sample(4000, rng)
+    assert abs((uniform_idx == 7).mean() - 1 / 50) < 0.02

@@ -83,3 +83,11 @@ def test_problem_without_a_simplex_block_trains():
     res = train(NoSimplex(), steps=150, seed=0, config=AgentConfig(**SMALL))
     assert np.isfinite(res.min_history).all()
     assert res.best_p.shape == (0,)
+
+
+def test_training_with_prioritised_replay_runs():
+    problem = ToyPhasePower(n_users=3, n_phases=4)
+    cfg = AgentConfig(**{**SMALL, "per_start_step": 100})
+    res = train(problem, steps=250, seed=0, config=cfg)
+    assert np.isfinite(res.min_history).all()
+    assert res.best_min >= res.initial_min
