@@ -8,7 +8,7 @@ agent behind that idea as a problem-agnostic core: you describe your problem in 
 neglecting the rest. No domain model is included — the problem is yours to plug in.
 
 It is the general-purpose core of the agent behind *Deep Reinforcement Learning Enabled Max-Min Fairness
-in Stacked Intelligent Metasurfaces Assisted MISO Downlink* (Patel & Jindal, manuscript under review).
+in Stacked Intelligent Metasurfaces Assisted MISO Downlink* (Patel & Jindal, accepted at IEEE TMLCN).
 See the [project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/) for the full story.
 
 ## The method
