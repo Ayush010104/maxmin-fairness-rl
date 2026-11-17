@@ -52,6 +52,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--steps", type=int, default=3000)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--plot", default=None, help="save a convergence plot to this path (needs matplotlib)")
     args = parser.parse_args()
 
     problem = ToyPhasePower(seed=args.seed)
@@ -63,6 +64,22 @@ def main() -> None:
     print(f"best min objective     : {result.best_min:.4f}  (step {result.best_step})")
     print("per-objective at best  :", np.round(result.best_objectives, 3))
     print("budget shares at best  :", np.round(result.best_p, 3))
+
+    if args.plot:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(6, 3.2), dpi=150)
+        ax.plot(result.min_history, lw=0.6, alpha=0.5, label="minimum objective per step")
+        ax.plot(np.maximum.accumulate(result.min_history), lw=1.8, label="best so far")
+        ax.set_xlabel("environment step")
+        ax.set_ylabel("min objective")
+        ax.grid(alpha=0.3)
+        ax.legend(frameon=False)
+        fig.tight_layout()
+        fig.savefig(args.plot)
 
 
 if __name__ == "__main__":

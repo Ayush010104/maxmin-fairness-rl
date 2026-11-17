@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying paper."
+title: "maxmin-fairness-rl"
+type: software
+authors:
+  - family-names: Patel
+    given-names: Ayush Brijesh
+repository-code: "https://github.com/Ayush010104/maxmin-fairness-rl"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Deep Reinforcement Learning Enabled Max-Min Fairness in Stacked Intelligent Metasurfaces Assisted MISO Downlink"
+  authors:
+    - family-names: Patel
+      given-names: Ayush Brijesh
+    - family-names: Jindal
+      given-names: Abhishek
+  journal: "IEEE Transactions on Machine Learning in Communications and Networking"
+  status: in-press

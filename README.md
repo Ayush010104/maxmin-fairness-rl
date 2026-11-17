@@ -121,12 +121,38 @@ Environment keyword arguments: `gm_weight=0.4`, `min_weight=0.6`, `reward_scale=
 
 The defaults are tuned for ~10k-step runs. For shorter runs, move `alpha_switch_step` earlier.
 
+## Sanity benchmark
+
+`python examples/benchmark.py --steps 3000 --seeds 5` on the synthetic toy problem (5 problem instances,
+3,000 objective evaluations per method; raw output in [`docs/benchmark_results.txt`](docs/benchmark_results.txt)):
+
+| Method | Best min objective, mean [95% bootstrap CI] | Beats random search |
+| --- | --- | --- |
+| Initial point (equal split) | 0.204 [0.095, 0.308] | 0/5 |
+| Random search, same budget | 1.935 [1.802, 2.072] | - |
+| Agent, no CE regulariser | 2.333 [2.147, 2.498] | 4/5 |
+| Agent (full) | 2.199 [1.906, 2.425] | 4/5 |
+
+![benchmark](docs/benchmark.png)
+
+The agent clearly improves on its starting point and on random search at an equal budget (4 of 5 seeds). On
+this toy problem the CE regulariser gave no measurable benefit: the two agent variants' intervals overlap and
+the mean is slightly lower with it. With 5 seeds this is a sanity check, not evidence about the paper's
+setting, which uses a different environment and is not reproduced here.
+
 ## Notes and limits
 
 * The log-density used for the entropy term is that of the `tanh`-squashed Gaussian sample, with the
   change-of-variables correction for `tanh`. It is **not** corrected for `project_x`, which is treated as
   constraint enforcement rather than as part of the stochastic policy.
+* The share head is `softmax(sigmoid(.))`. Since `sigmoid` lies in (0, 1), every share is confined to
+  `[1/(1+(K-1)e), e/(e+K-1)]` (about 0.109 to 0.475 for K = 4): corner solutions of the simplex are not
+  reachable. This follows the original design; if your optimum needs more extreme shares, replace the head.
 * BatchNorm is used in the networks, so `batch_size` must be at least 2.
+* Critics and target critics stay in training mode, so BatchNorm uses batch statistics when forming the
+  Bellman target. The final step of a run is treated as terminal, although it is a time-limit truncation.
+* Evaluation: `train` reports the best solution seen at any step, so compare methods on equal evaluation
+  budgets and over several seeds, as in [`examples/benchmark.py`](examples/benchmark.py).
 * `n_x` must be positive. The incremental block is the primary variable; the simplex block is optional.
 
 ## Layout

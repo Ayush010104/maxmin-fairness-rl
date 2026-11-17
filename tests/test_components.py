@@ -90,3 +90,14 @@ def test_prioritised_sampling_prefers_high_priority_slots():
     assert abs((idx == 7).mean() - expected) < 0.03
     *_, uniform_idx = buf.sample(4000, rng)
     assert abs((uniform_idx == 7).mean() - 1 / 50) < 0.02
+
+
+@pytest.mark.parametrize("n_p", [2, 4, 8])
+def test_share_head_is_confined_to_the_documented_interval(n_p):
+    actor = HybridActor(n_p + 4, n_p, 4, lambda v: v, hidden=(16, 16)).eval()
+    with torch.no_grad():
+        actor.p_head.weight.mul_(1e3)  # saturate the sigmoid in both directions
+        shares, _, _ = actor(torch.randn(256, n_p + 4) * 5)
+    lo, hi = 1 / (1 + (n_p - 1) * math.e), math.e / (math.e + n_p - 1)
+    assert shares.min().item() >= lo - 1e-6
+    assert shares.max().item() <= hi + 1e-6
