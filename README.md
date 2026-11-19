@@ -8,7 +8,7 @@ agent behind that idea as a problem-agnostic core: you describe your problem in 
 neglecting the rest. No domain model is included — the problem is yours to plug in.
 
 It is the general-purpose core of the agent behind *Deep Reinforcement Learning Enabled Max-Min Fairness
-in Stacked Intelligent Metasurfaces Assisted MISO Downlink* (Patel & Jindal, accepted at IEEE TMLCN).
+in Stacked Intelligent Metasurfaces Assisted MISO Downlink* ([Patel & Jindal, IEEE TMLCN](https://ieeexplore.ieee.org/document/11803112)).
 See the [project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/) for the full story.
 
 ## The method
@@ -121,25 +121,6 @@ Environment keyword arguments: `gm_weight=0.4`, `min_weight=0.6`, `reward_scale=
 
 The defaults are tuned for ~10k-step runs. For shorter runs, move `alpha_switch_step` earlier.
 
-## Sanity benchmark
-
-`python examples/benchmark.py --steps 3000 --seeds 5` on the synthetic toy problem (5 problem instances,
-3,000 objective evaluations per method; raw output in [`docs/benchmark_results.txt`](docs/benchmark_results.txt)):
-
-| Method | Best min objective, mean [95% bootstrap CI] | Beats random search |
-| --- | --- | --- |
-| Initial point (equal split) | 0.204 [0.095, 0.308] | 0/5 |
-| Random search, same budget | 1.935 [1.802, 2.072] | - |
-| Agent, no CE regulariser | 2.333 [2.147, 2.498] | 4/5 |
-| Agent (full) | 2.199 [1.906, 2.425] | 4/5 |
-
-![benchmark](docs/benchmark.png)
-
-The agent clearly improves on its starting point and on random search at an equal budget (4 of 5 seeds). On
-this toy problem the CE regulariser gave no measurable benefit: the two agent variants' intervals overlap and
-the mean is slightly lower with it. With 5 seeds this is a sanity check, not evidence about the paper's
-setting, which uses a different environment and is not reproduced here.
-
 ## Notes and limits
 
 * The log-density used for the entropy term is that of the `tanh`-squashed Gaussian sample, with the
@@ -152,7 +133,7 @@ setting, which uses a different environment and is not reproduced here.
 * Critics and target critics stay in training mode, so BatchNorm uses batch statistics when forming the
   Bellman target. The final step of a run is treated as terminal, although it is a time-limit truncation.
 * Evaluation: `train` reports the best solution seen at any step, so compare methods on equal evaluation
-  budgets and over several seeds, as in [`examples/benchmark.py`](examples/benchmark.py).
+  budgets and over several seeds.
 * `n_x` must be positive. The incremental block is the primary variable; the simplex block is optional.
 
 ## Layout
