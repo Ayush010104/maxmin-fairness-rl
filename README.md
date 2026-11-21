@@ -1,19 +1,31 @@
 # maxmin-fairness-rl
 
-Deep reinforcement learning for **max-min fairness** over any constrained optimisation problem.
+**Deep reinforcement learning for max-min fairness over any constrained optimisation problem.**
 
-**[Paper (IEEE TMLCN)](https://ieeexplore.ieee.org/document/11803112)** · **[Project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/)**
+[![Paper](https://img.shields.io/badge/paper-IEEE%20TMLCN-00629B)](https://ieeexplore.ieee.org/document/11803112)
+[![Project page](https://img.shields.io/badge/project-page-2ea44f)](https://ayush010104.github.io/sim-maxmin-fairness-drl/)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Max-min fairness does not maximise a total; it lifts the worst-off objective. This library packages the
 agent behind that idea as a problem-agnostic core: you describe your problem in a few methods
 (variables, constraints, objectives) and the agent learns to raise the minimum objective without
-neglecting the rest. No domain model is included — the problem is yours to plug in.
+neglecting the rest. No domain model is included: the problem is yours to plug in.
 
 It is the general-purpose core of the agent behind *Deep Reinforcement Learning Enabled Max-Min Fairness
-in Stacked Intelligent Metasurfaces Assisted MISO Downlink* ([Patel & Jindal, IEEE TMLCN](https://ieeexplore.ieee.org/document/11803112)).
-See the [project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/) for the full story.
+in Stacked Intelligent Metasurfaces Assisted MISO Downlink* (Patel & Jindal, IEEE TMLCN). The paper's
+stacked-metasurface system model and experiments are not part of this repository; see
+[Relationship to the paper](#relationship-to-the-paper).
 
-## The method
+## How it works
+
+```mermaid
+flowchart LR
+    S["state<br/>(x, p)"] --> A["hybrid actor<br/>SAC head → x<br/>DDPG head → p"]
+    A -->|"projected delta dx,<br/>budget shares p"| E["your FairnessProblem<br/>objectives o_1..o_K"]
+    E -->|"reward = 1000·log2(C_t+1 / C_t)"| C["twin critics Q(s, a)"]
+    C -->|"policy gradient<br/>+ fairness CE term"| A
+```
 
 * **Optimisation as an MDP.** The state is the current solution; the action is an *incremental update*
   to it; the environment applies the update, evaluates the objectives and returns the reward.
@@ -42,7 +54,7 @@ See the [project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/) f
 git clone https://github.com/Ayush010104/maxmin-fairness-rl
 cd maxmin-fairness-rl
 pip install -e ".[dev]"
-pytest
+pytest          # unit tests for the components and short training loops
 ```
 
 Requires Python 3.9+, PyTorch 2.0+ and NumPy.
@@ -138,20 +150,42 @@ The defaults are tuned for ~10k-step runs. For shorter runs, move `alpha_switch_
   budgets and over several seeds.
 * `n_x` must be positive. The incremental block is the primary variable; the simplex block is optional.
 
-## Layout
+## Repository layout
 
 ```
 src/maxmin_rl/
-  problem.py      FairnessProblem interface
+  problem.py      FairnessProblem interface (what you implement)
   env.py          MDP wrapper, reward, best-solution tracking
   rewards.py      composite metric, log-ratio reward, inverse-objective target
   projections.py  in-graph projections
   networks.py     hybrid actor, critic
   agent.py        hybrid SAC-DDPG agent, CE regulariser
-  replay.py       finite replay buffer
+  replay.py       finite replay buffer (optional prioritised sampling)
   trainer.py      training loop
-examples/         a runnable toy problem
-tests/            unit and training tests
+examples/         a runnable synthetic problem (toy_phase_power.py)
+tests/            unit tests of components and short training loops
+```
+
+## Relationship to the paper
+
+* This repository is the **problem-agnostic core** of the method. The paper's SIM system model, channel
+  generation, baselines and experiments are not included, and this repository does not reproduce the paper's
+  numbers.
+* Default hyperparameters come from the author's experiment code and may differ from the tables in the paper.
+* The bundled example is a small synthetic problem for demonstration, not a result from the paper.
+
+## Citation
+
+If you use this code, please cite the paper (see also [`CITATION.cff`](CITATION.cff)):
+
+```bibtex
+@article{patel2026maxmin,
+  title   = {Deep Reinforcement Learning Enabled Max-Min Fairness in Stacked Intelligent Metasurfaces Assisted MISO Downlink},
+  author  = {Patel, Ayush Brijesh and Jindal, Abhishek},
+  journal = {IEEE Transactions on Machine Learning in Communications and Networking},
+  year    = {2026},
+  url     = {https://ieeexplore.ieee.org/document/11803112}
+}
 ```
 
 ## License
