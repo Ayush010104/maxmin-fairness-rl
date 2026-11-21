@@ -2,6 +2,8 @@
 
 Deep reinforcement learning for **max-min fairness** over any constrained optimisation problem.
 
+**[Paper (IEEE TMLCN)](https://ieeexplore.ieee.org/document/11803112)** · **[Project page](https://ayush010104.github.io/sim-maxmin-fairness-drl/)**
+
 Max-min fairness does not maximise a total; it lifts the worst-off objective. This library packages the
 agent behind that idea as a problem-agnostic core: you describe your problem in a few methods
 (variables, constraints, objectives) and the agent learns to raise the minimum objective without
